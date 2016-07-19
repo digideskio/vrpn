@@ -48,6 +48,7 @@
 #include "vrpn_Joylin.h"               // for vrpn_Joylin
 #include "vrpn_Joywin32.h"
 #include "vrpn_Keyboard.h"                // for vrpn_Keyboard
+#include "vrpn_Laputa.h"                  // for vrpn_Laputa
 #include "vrpn_LUDL.h"                    // for vrpn_LUDL_USBMAC6000
 #include "vrpn_Logitech_Controller_Raw.h" // for vrpn_Logitech_Extreme_3D_Pro, etc.
 #include "vrpn_Magellan.h"                // for vrpn_Magellan
@@ -5101,6 +5102,32 @@ int vrpn_Generic_Server_Object::setup_nVidia_shield_USB(char *&pch, char *line, 
   return 0; // successful completion
 }
 
+int vrpn_Generic_Server_Object::setup_Laputa(char *&pch, char *line, FILE *)
+{
+  char s2[LINESIZE];
+
+  VRPN_CONFIG_NEXT();
+  int ret = sscanf(pch, "%511s", s2);
+  if (ret != 1) {
+    fprintf(stderr, "Bad Laputa line: %s\n", line);
+    return -1;
+  }
+
+  // Open the Laputa
+  if (verbose) {
+    printf("Opening vrpn_Laputa\n");
+  }
+
+#ifdef VRPN_USE_HID
+  // Open the tracker
+  _devices->add(new vrpn_Laputa(s2, connection));
+#else
+  fprintf(stderr,
+    "Laputa driver works only with VRPN_USE_HID defined!\n");
+#endif
+  return 0; // successful completion
+}
+
 #undef VRPN_CONFIG_NEXT
 
 vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
@@ -5674,6 +5701,9 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                 }
                 else if (VRPN_ISIT("vrpn_Tracker_Spin")) {
                   VRPN_CHECK(setup_Tracker_Spin);
+                }
+                else if (VRPN_ISIT("vrpn_Laputa")){
+                    VRPN_CHECK(setup_Laputa);
                 }
                 else {                         // Never heard of it
                     sscanf(line, "%511s", s1); // Find out the class name
